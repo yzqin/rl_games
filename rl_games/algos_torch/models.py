@@ -259,6 +259,7 @@ class ModelA2CContinuousLogStd(BaseModel):
                 return result
             else:
                 selected_action = distr.sample()
+                # selected_action = torch.clip(selected_action, -1, 1)
                 neglogp = self.neglogp(selected_action, mu, sigma, logstd)
                 result = {
                     'neglogpacs' : torch.squeeze(neglogp),
