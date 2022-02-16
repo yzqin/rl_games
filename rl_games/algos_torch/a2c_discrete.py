@@ -87,7 +87,7 @@ class DiscreteA2CAgent(a2c_common.DiscreteA2CBase):
         self.set_full_state_weights(checkpoint)
 
     def get_masked_action_values(self, obs, action_masks):
-        processed_obs = self._preproc_obs(obs['obs'])
+        processed_obs = self._preproc_obs(obs)
         action_masks = torch.BoolTensor(action_masks).to(self.ppo_device)
         input_dict = {
             'is_train': False,
