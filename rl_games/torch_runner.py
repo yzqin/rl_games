@@ -12,6 +12,7 @@ from rl_games.common import tr_helpers
 from rl_games.algos_torch import model_builder
 from rl_games.algos_torch import a2c_continuous
 from rl_games.algos_torch import a2c_continuous_dapg
+from rl_games.algos_torch import a2c_continuous_online_bc
 from rl_games.algos_torch import a2c_discrete
 from rl_games.algos_torch import players
 from rl_games.common.algo_observer import DefaultAlgoObserver
@@ -24,11 +25,13 @@ class Runner:
         self.algo_factory.register_builder('a2c_discrete', lambda **kwargs : a2c_discrete.DiscreteA2CAgent(**kwargs))
         self.algo_factory.register_builder('sac', lambda **kwargs: sac_agent.SACAgent(**kwargs))
         self.algo_factory.register_builder('a2c_continuous_dapg', lambda **kwargs: a2c_continuous_dapg.DAPGA2CAgent(**kwargs))
+        self.algo_factory.register_builder('a2c_continuous_online_bc', lambda **kwargs: a2c_continuous_online_bc.OnlineBCAgent(**kwargs))
         #self.algo_factory.register_builder('dqn', lambda **kwargs : dqnagent.DQNAgent(**kwargs))
 
         self.player_factory = object_factory.ObjectFactory()
         self.player_factory.register_builder('a2c_continuous', lambda **kwargs : players.PpoPlayerContinuous(**kwargs))
         self.player_factory.register_builder('a2c_continuous_dapg', lambda **kwargs : players.PpoPlayerContinuous(**kwargs))
+        self.player_factory.register_builder('a2c_continuous_online_bc', lambda **kwargs : players.PpoPlayerContinuous(**kwargs))
         self.player_factory.register_builder('a2c_discrete', lambda **kwargs : players.PpoPlayerDiscrete(**kwargs))
         self.player_factory.register_builder('sac', lambda **kwargs : players.SACPlayer(**kwargs))
         #self.player_factory.register_builder('dqn', lambda **kwargs : players.DQNPlayer(**kwargs))

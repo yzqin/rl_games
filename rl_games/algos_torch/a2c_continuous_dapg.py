@@ -35,13 +35,6 @@ class DAPGA2CAgent(a2c_continuous.A2CAgent):
         return_batch = input_dict['returns']
         actions_batch = input_dict['actions']
 
-        # if self.modality_dict is not None:
-        #     obs_batch = {}
-        #     for modality_name in self.modality_dict:
-        #         obs_batch[modality_name] = input_dict[modality_name]
-        #     obs_batch = self._preproc_obs(obs_batch)
-        #
-        # else:
         obs_batch = input_dict['obs']
         obs_batch = self._preproc_obs(obs_batch)
 
@@ -119,8 +112,7 @@ class DAPGA2CAgent(a2c_continuous.A2CAgent):
             a_loss, c_loss, entropy, b_loss = losses[0], losses[1], losses[2], losses[3]
 
             # Loss coefficient.
-            demo_loss_discounted = demo_loss.mean() * self.lambda_0 \
-                                   * (self.lambda_1 ** self.epoch_num)
+            demo_loss_discounted = demo_loss.mean() * self.lambda_0 * (self.lambda_1 ** self.epoch_num)
 
             loss = a_loss + demo_loss_discounted + 0.5 * c_loss * self.critic_coef \
                    - entropy * self.entropy_coef + b_loss * self.bounds_loss_coef

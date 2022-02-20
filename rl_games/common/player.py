@@ -23,12 +23,25 @@ class BasePlayer(object):
         self.num_agents = self.env_info['agents']
 
         self.observation_space = self.env_info['observation_space']
-        if isinstance(self.observation_space, gym.spaces.Dict):
-            self.obs_shape = {}
-            for k, v in self.observation_space.spaces.items():
-                self.obs_shape[k] = v.shape
+        self.has_dict_obs = False
+        modality = params["network"].get("modality", None)
+        if modality is not None:
+            if isinstance(self.observation_space, gym.spaces.Dict):
+                # Remove additional field provided by env but not used in the network
+                # It is useful for online distillation between different modality
+                self.observation_space = gym.spaces.Dict(
+                    {k: v for k, v in self.observation_space.spaces.items() if k in modality})
+                self.obs_shape = {}
+                for k, v in self.observation_space.spaces.items():
+                    self.obs_shape[k] = v.shape
+                self.has_dict_obs = True
+            else:
+                raise RuntimeError()
         else:
-            self.obs_shape = self.observation_space.shape
+            if isinstance(self.observation_space, gym.spaces.Dict):
+                self.obs_shape = self.observation_space.spaces["obs"].shape
+            else:
+                self.obs_shape = self.observation_space.shape
         self.is_tensor_obses = False
 
         self.states = None

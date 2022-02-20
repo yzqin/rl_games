@@ -68,7 +68,7 @@ class PpoPlayerContinuous(BasePlayer):
             return current_action
 
     def restore(self, fn):
-        checkpoint = torch_ext.load_checkpoint(fn)
+        checkpoint = torch_ext.load_checkpoint(fn, map_location=self.device)
         self.model.load_state_dict(checkpoint['model'])
         if self.normalize_input and 'running_mean_std' in checkpoint:
             self.model.running_mean_std.load_state_dict(checkpoint['running_mean_std'])

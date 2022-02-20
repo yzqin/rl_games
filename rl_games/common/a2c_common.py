@@ -93,6 +93,12 @@ class A2CBase(BaseAlgorithm):
             self.vec_env = vecenv.create_vec_env(self.env_name, self.num_actors, **self.env_config)
             self.env_info = self.vec_env.get_env_info()
 
+        # Modification for dexmv
+        self.log_success_rate = False
+        if hasattr(self.vec_env, "env"):
+            if hasattr(self.vec_env.env, "latest_success_rate"):
+                self.log_success_rate = True
+
         self.ppo_device = config.get('device', 'cuda:0')
         self.value_size = self.env_info.get('value_size', 1)
         self.observation_space = self.env_info['observation_space']
@@ -160,18 +166,21 @@ class A2CBase(BaseAlgorithm):
 
         self.has_dict_obs = False
         modality = params["network"].get("modality", None)
-        if isinstance(self.observation_space, gym.spaces.Dict):
-            if modality is not None:
+        if modality is not None:
+            if isinstance(self.observation_space, gym.spaces.Dict):
                 # Remove additional field provided by env but not used in the network
                 # It is useful for online distillation between different modality
                 self.observation_space = gym.spaces.Dict(
                     {k: v for k, v in self.observation_space.spaces.items() if k in modality})
-            self.obs_shape = {}
-            for k, v in self.observation_space.spaces.items():
-                self.obs_shape[k] = v.shape
-            self.has_dict_obs = True
+                self.obs_shape = {}
+                for k, v in self.observation_space.spaces.items():
+                    self.obs_shape[k] = v.shape
+                self.has_dict_obs = True
         else:
-            self.obs_shape = self.observation_space.shape
+            if isinstance(self.observation_space, gym.spaces.Dict):
+                self.obs_shape = self.observation_space.spaces["obs"].shape
+            else:
+                self.obs_shape = self.observation_space.shape
 
         self.critic_coef = config['critic_coef']
         self.grad_norm = config['grad_norm']
@@ -283,6 +292,19 @@ class A2CBase(BaseAlgorithm):
         self.writer.add_scalar('info/kl', torch_ext.mean_list(kls).item(), frame)
         self.writer.add_scalar('info/epochs', epoch_num, frame)
         self.algo_observer.after_print_stats(frame, epoch_num, total_time)
+
+        # Modification for DexMV only
+        if self.log_success_rate:
+            self.writer.add_scalar("task/success_rate", self.vec_env.env.latest_success_rate.item(), frame)
+
+        # Log visual information
+        if isinstance(self.obs, dict):
+            if "pointcloud" in self.obs:
+                vertices = self.obs["pointcloud"]
+                self.writer.add_mesh('pointcloud', vertices=vertices, global_step=frame)
+            if "rgb" in self.obs:
+                rgb = self.obs["rgb"]
+                self.writer.add_image("rgb", rgb, global_step=frame)
 
     def set_eval(self):
         self.model.eval()
