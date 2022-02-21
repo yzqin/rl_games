@@ -339,7 +339,7 @@ class A2CBase(BaseAlgorithm):
         }
 
         with torch.no_grad():
-            res_dict = self.model(input_dict)
+            res_dict = self.model(input_dict['obs'])
             if self.has_central_value:
                 states = obs['states']
                 input_dict = {
@@ -348,6 +348,8 @@ class A2CBase(BaseAlgorithm):
                 }
                 value = self.get_central_value(input_dict)
                 res_dict['values'] = value
+        
+
         return res_dict
 
     def get_values(self, obs):
@@ -368,7 +370,7 @@ class A2CBase(BaseAlgorithm):
                 input_dict = {
                     'is_train': False,
                     'prev_actions': None,
-                    'obs': processed_obs,
+                    'obs': processed_obs['obs'],
                     'rnn_states': self.rnn_states
                 }
                 result = self.model(input_dict)

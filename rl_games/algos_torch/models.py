@@ -194,7 +194,7 @@ class ModelA2CContinuous(BaseModel):
             input_dict['obs'] = self.norm_obs(input_dict['obs'])
             mu, sigma, value, states = self.a2c_network(input_dict)
             distr = torch.distributions.Normal(mu, sigma)
-
+            
             if is_train:
                 entropy = distr.entropy().sum(dim=-1)
                 prev_neglogp = -distr.log_prob(prev_actions).sum(dim=-1)
@@ -240,18 +240,24 @@ class ModelA2CContinuousLogStd(BaseModel):
 
         def forward(self, input_dict):
             is_train = input_dict.get('is_train', True)
-            prev_actions = input_dict.get('prev_actions', None)
+            #prev_actions = input_dict.get('prev_actions', None)
             input_dict['obs'] = self.norm_obs(input_dict['obs'])
             mu, logstd, value, states = self.a2c_network(input_dict)
             sigma = torch.exp(logstd)
             distr = torch.distributions.Normal(mu, sigma)
+            prev_actions = input_dict.get('prev_actions', distr.sample())
+
             if is_train:
                 entropy = distr.entropy().sum(dim=-1)
+                selected_action = distr.sample()
                 prev_neglogp = self.neglogp(prev_actions, mu, sigma, logstd)
+                neglogp = self.neglogp(selected_action, mu, sigma, logstd)
                 result = {
-                    'prev_neglogp' : torch.squeeze(prev_neglogp),
+                    'prev_neglogp' : prev_neglogp,
+                    'neglogpacs' : neglogp,
                     'values' : value,
                     'entropy' : entropy,
+                    'actions': prev_actions,
                     'rnn_states' : states,
                     'mus' : mu,
                     'sigmas' : sigma
@@ -262,7 +268,7 @@ class ModelA2CContinuousLogStd(BaseModel):
                 # selected_action = torch.clip(selected_action, -1, 1)
                 neglogp = self.neglogp(selected_action, mu, sigma, logstd)
                 result = {
-                    'neglogpacs' : torch.squeeze(neglogp),
+                    'neglogpacs' : neglogp,
                     'values' : self.unnorm_value(value),
                     'actions' : selected_action,
                     'rnn_states' : states,
@@ -272,9 +278,11 @@ class ModelA2CContinuousLogStd(BaseModel):
                 return result
 
         def neglogp(self, x, mean, std, logstd):
-            return 0.5 * (((x - mean) / std)**2).sum(dim=-1) \
+            #if x is None:
+            #    return 0
+            return torch.squeeze(0.5 * (((x - mean) / std)**2).sum(dim=-1) \
                 + 0.5 * np.log(2.0 * np.pi) * x.size()[-1] \
-                + logstd.sum(dim=-1)
+                + logstd.sum(dim=-1))
 
 
 class ModelCentralValue(BaseModel):
