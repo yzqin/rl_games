@@ -424,6 +424,7 @@ def get_env_info(env):
     '''
     if hasattr(env, "value_size"):    
         result_shapes['value_size'] = env.value_size
+    print(result_shapes)
     return result_shapes
 
 def get_obs_and_action_spaces_from_config(config):

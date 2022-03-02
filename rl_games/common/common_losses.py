@@ -51,8 +51,3 @@ def ppo_behavioral_cloning_actor_loss(action_neglog_probs, old_action_neglog_pro
     a_loss = torch.max(-surr1, -surr2)
 
     return a_loss
-
-
-def l2_loss(action_mu, demo_mu):
-    loss = 0.5 * ((action_mu - demo_mu) * (action_mu - demo_mu)).sum(-1)
-    return loss

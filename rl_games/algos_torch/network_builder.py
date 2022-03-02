@@ -290,9 +290,6 @@ class A2CBuilder(NetworkBuilder):
 
         def forward(self, obs_dict):
             obs = obs_dict['obs']
-            if isinstance(obs, dict):
-                obs = obs["obs"]
-
             states = obs_dict.get('rnn_states', None)
             seq_length = obs_dict.get('seq_length', 1)
             dones = obs_dict.get('dones', None)

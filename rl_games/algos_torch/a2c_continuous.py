@@ -89,6 +89,13 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
         return_batch = input_dict['returns']
         actions_batch = input_dict['actions']
 
+        # if self.modality_dict is not None:
+        #     obs_batch = {}
+        #     for modality_name in self.modality_dict:
+        #         obs_batch[modality_name] = input_dict[modality_name]
+        #     obs_batch = self._preproc_obs(obs_batch)
+        #
+        # else:
         obs_batch = input_dict['obs']
         obs_batch = self._preproc_obs(obs_batch)
 

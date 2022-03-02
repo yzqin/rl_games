@@ -15,11 +15,9 @@ class A2CPNBuilder(A2CBuilder):
             assert "pointcloud" in input_shape
             assert "pointnet" in params
 
-            # input_shape_pc = input_shape["pointcloud"]
+            input_shape_pc = input_shape["pointcloud"]
             # input_shape_pc = (input_shape_pc[0], input_shape_pc[2], input_shape_pc[1])  # (B, N, 3) -> (B, 3, N)
-            input_state_shape = input_shape.get("obs", None)
-            self.use_state_input = "obs" in params["modality"]
-            input_shape_state = input_state_shape[0] if self.use_state_input else 0
+            input_shape_state = input_shape.get("obs", 0)
 
             self.num_seqs = num_seqs = kwargs.pop('num_seqs', 1)
             self.value_size = kwargs.pop('value_size', 1)
@@ -30,7 +28,7 @@ class A2CPNBuilder(A2CBuilder):
             pn_local_shape = params["pointnet"]["local_units"]
             pn_global_shape = params["pointnet"]["global_units"]
             pn_output_shape = pn_global_shape[-1]
-            in_mlp_shape = pn_output_shape + input_shape_state
+            in_mlp_shape = pn_output_shape + input_shape_state[0]
 
             if len(self.units) == 0:
                 out_size = in_mlp_shape
@@ -125,7 +123,7 @@ class A2CPNBuilder(A2CBuilder):
                         out = l(out)
             else:
                 # Modification.
-                if self.use_state_input:
+                if "obs" in obs_dict:
                     out = torch.cat([out, obs_dict["obs"]], dim=-1)
 
                 for l in self.mlp:
